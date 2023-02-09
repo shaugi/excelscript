@@ -1,8 +1,10 @@
 // @ts-nocheck
 function main(workbook: ExcelScript.Workbook) {
 
-  generate_totalAssets_by_Status(workbook);
-  generate_totalByDepartmentAndTypeAssetsTmp(workbook);
+  // generate_totalAssets_by_Status(workbook);
+  // generate_totalByDepartmentAndTypeAssetsTmp(workbook);
+  // generate_countByLocation(workbook)
+  generate_countByCondition(workbook);
 }
 
 
@@ -169,7 +171,7 @@ function generate_totalByDepartmentAndTypeAssets(workbook: ExcelScript.Workbook)
     reportSheet.getRange(`C${i + 1}:${convertNumToAlphabet(totalColumn + 2)}${i + 1}`).setValues([transposedData[i]])
   }
   //delete temporary
-  // workbook.getWorksheet("Type Asset by Department Tmp")?.delete();
+  workbook.getWorksheet("Type Asset by Department Tmp")?.delete();
 
 
   //config sheet
@@ -188,13 +190,131 @@ function generate_totalByDepartmentAndTypeAssets(workbook: ExcelScript.Workbook)
   reportSheet.getRange(`D:${convertNumToAlphabet(totalColumn + 2)}`).getFormat().setIndentLevel(0);
 
   //draw Chart
-
-
   finalcol = firstCol +":"+ convertNumToAlphabet(totalColumn + 2) + totalRow;
   let chart = drawChart(workbook, "Type Asset by Department", finalcol);
   chart.setPosition(`C${totalRow + 3}`);
   chart.getTitle().setText("Type Asset by Department");
 
+}
+
+//GENERATE TOTAL ASSETS BY LOCATION
+function generate_countByLocation(workbook: ExcelScript.Workbook) {
+  let database = workbook.getWorksheet("database");
+  const database_range = database.getUsedRange();
+  const database_values = database_range.getValues();
+  const database_lastCell = database_values.length;
+  const selectedColumns = database_values.map((row) => {
+    return [row[7]];
+  });
+
+  // count by Location
+  let count = selectedColumns.reduce((acc, curr) => {
+    if (acc[curr[0]]) {
+      acc[curr[0]]++;
+    } else {
+      acc[curr[0]] = 1;
+    }
+    return acc;
+  }, {});
+
+  let result = Object.entries(count).map(([key, value]) => [key, value]);
+
+  result.shift();
+
+
+  // add to new data to  worksheet
+  workbook.getWorksheet("Count By Location")?.delete();
+  const report = workbook.addWorksheet("Count By Location");
+  report.getRange("C1:D1").setValues([['Location', 'Total']]);
+  const reportUsedRange = report.getUsedRange();
+  const reportValues = reportUsedRange.getValues();
+  let reportLength = reportValues.length;
+
+  result.forEach((data) => {
+    reportLength += 1;
+    report.getRange(`C${reportLength}:D${reportLength}`).setValues([data]);
+  });
+
+  //sheet Configuration
+  let firstCol = "C1";
+  let lastCol = "D1";
+  let totalUsedRange = report.getUsedRange();
+  let totalusedValues = totalUsedRange.getValues();
+  let totalRow = totalusedValues.length;
+
+  //center department & set header color
+  report.getRange("C:C").getFormat().autofitColumns();
+  report.getRange("C1:D1").getFormat().getFill().setColor("B4C6E7");
+  report.getRange("1:1").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+  report.getRange("1:1").getFormat().setIndentLevel(0);
+  report.getRange("D:D").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+  report.getRange("D:D").getFormat().setIndentLevel(0);
+
+  //draw Chart
+  finalcol = `C1:D${totalRow}`;
+  let chart = drawChart(workbook, "Count By Location", finalcol);
+  chart.setPosition(`C${totalRow + 3}`);
+  chart.getTitle().setText("Total Assets By Location");
+}
+
+//GENERATE TOTAL ASSETS BY CONDITION
+function generate_countByCondition(workbook: ExcelScript.Workbook) {
+  let database = workbook.getWorksheet("database");
+  const database_range = database.getUsedRange();
+  const database_values = database_range.getValues();
+  const database_lastCell = database_values.length;
+  const selectedColumns = database_values.map((row) => {
+    return [row[8]];
+  });
+
+  // count by Location
+  let count = selectedColumns.reduce((acc, curr) => {
+    if (acc[curr[0]]) {
+      acc[curr[0]]++;
+    } else {
+      acc[curr[0]] = 1;
+    }
+    return acc;
+  }, {});
+
+  let result = Object.entries(count).map(([key, value]) => [key, value]);
+
+  result.shift();
+
+
+  // add to new data to  worksheet
+  workbook.getWorksheet("Count By Condition")?.delete();
+  const report = workbook.addWorksheet("Count By Condition");
+  report.getRange("C1:D1").setValues([['Location', 'Total']]);
+  const reportUsedRange = report.getUsedRange();
+  const reportValues = reportUsedRange.getValues();
+  let reportLength = reportValues.length;
+
+  result.forEach((data) => {
+    reportLength += 1;
+    report.getRange(`C${reportLength}:D${reportLength}`).setValues([data]);
+  });
+
+  //sheet Configuration
+  let firstCol = "C1";
+  let lastCol = "D1";
+  let totalUsedRange = report.getUsedRange();
+  let totalusedValues = totalUsedRange.getValues();
+  let totalRow = totalusedValues.length;
+
+  //center department & set header color
+  report.getRange("C:C").getFormat().autofitColumns();
+  report.getRange("C1:D1").getFormat().getFill().setColor("B4C6E7");
+  report.getRange("1:1").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+  report.getRange("1:1").getFormat().setIndentLevel(0);
+  report.getRange("D:D").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+  report.getRange("D:D").getFormat().setIndentLevel(0);
+
+  //draw Chart
+  finalcol = `C1:D${totalRow}`;
+  let chart = drawChart(workbook, "Count By Condition", finalcol);
+  chart.setPosition(`C${totalRow + 3}`);
+  chart.getTitle().setText("Total Assets By Condition");
 }
 
 //ADDONS FUNCTION
