@@ -1,9 +1,9 @@
 // @ts-nocheck
 function main(workbook: ExcelScript.Workbook) {
 
-  // generate_totalAssets_by_Status(workbook);
-  // generate_totalByDepartmentAndTypeAssetsTmp(workbook);
-  // generate_countByLocation(workbook)
+  generate_totalAssets_by_Status(workbook);
+  generate_totalByDepartmentAndTypeAssetsTmp(workbook);
+  generate_countByLocation(workbook)
   generate_countByCondition(workbook);
 }
 
@@ -69,10 +69,14 @@ function generate_totalAssets_by_Status(workbook: ExcelScript.Workbook) {
   report.getRange("C:G").getFormat().setIndentLevel(0);
   // Set fill color to B4C6E7 for range A1:E1 on selectedSheet
   report.getRange("C1:G1").getFormat().getFill().setColor("B4C6E7");
+  report.getPageLayout().setPrintArea("A1:K52");
 
   let chartAssetsByStatus = drawChart(workbook, "Status by Type Assets", finalcol);
   chartAssetsByStatus.setPosition(`B${reportTR + 3}`);
   chartAssetsByStatus.getTitle().setText("Status by Type Assets");
+  chartAssetsByStatus.setLeft(0);
+  chartAssetsByStatus.setWidth(520);
+  chartAssetsByStatus.setHeight(300);
 }
 
 //GENERATE TOTAL ASSET BY TYPE AND DEPARTMENT TEMPORARY
@@ -180,21 +184,25 @@ function generate_totalByDepartmentAndTypeAssets(workbook: ExcelScript.Workbook)
   let totalUsedRange = reportSheet.getUsedRange();
   let totalusedValues = totalUsedRange.getValues();
   let totalRow = totalusedValues.length;
+  reportSheet.getPageLayout().setPrintArea("A1:K52");
 
   //center department & set header color
   reportSheet.getRange("C:C").getFormat().autofitColumns();
-  reportSheet.getRange(`C1:${convertNumToAlphabet(totalColumn+2)}1`).getFormat().getFill().setColor("B4C6E7");
+  reportSheet.getRange(`C1:${convertNumToAlphabet(totalColumn + 2)}1`).getFormat().getFill().setColor("B4C6E7");
   reportSheet.getRange("1:1").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
   reportSheet.getRange("1:1").getFormat().setIndentLevel(0);
   reportSheet.getRange(`D:${convertNumToAlphabet(totalColumn + 2)}`).getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
   reportSheet.getRange(`D:${convertNumToAlphabet(totalColumn + 2)}`).getFormat().setIndentLevel(0);
 
   //draw Chart
-  finalcol = firstCol +":"+ convertNumToAlphabet(totalColumn + 2) + totalRow;
+  finalcol = firstCol + ":" + convertNumToAlphabet(totalColumn + 2) + totalRow;
   let chart = drawChart(workbook, "Type Asset by Department", finalcol);
   chart.setPosition(`C${totalRow + 3}`);
   chart.getTitle().setText("Type Asset by Department");
 
+  chart.setLeft(0);
+  chart.setWidth(520);
+  chart.setHeight(300);
 }
 
 //GENERATE TOTAL ASSETS BY LOCATION
@@ -249,12 +257,16 @@ function generate_countByLocation(workbook: ExcelScript.Workbook) {
   report.getRange("1:1").getFormat().setIndentLevel(0);
   report.getRange("D:D").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
   report.getRange("D:D").getFormat().setIndentLevel(0);
+  report.getPageLayout().setPrintArea("A1:K52");
 
   //draw Chart
   finalcol = `C1:D${totalRow}`;
   let chart = drawChart(workbook, "Count By Location", finalcol);
   chart.setPosition(`C${totalRow + 3}`);
   chart.getTitle().setText("Total Assets By Location");
+  chart.setLeft(0);
+  chart.setWidth(520);
+  chart.setHeight(300);
 }
 
 //GENERATE TOTAL ASSETS BY CONDITION
@@ -302,6 +314,7 @@ function generate_countByCondition(workbook: ExcelScript.Workbook) {
   let totalusedValues = totalUsedRange.getValues();
   let totalRow = totalusedValues.length;
 
+
   //center department & set header color
   report.getRange("C:C").getFormat().autofitColumns();
   report.getRange("C1:D1").getFormat().getFill().setColor("B4C6E7");
@@ -309,12 +322,16 @@ function generate_countByCondition(workbook: ExcelScript.Workbook) {
   report.getRange("1:1").getFormat().setIndentLevel(0);
   report.getRange("D:D").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
   report.getRange("D:D").getFormat().setIndentLevel(0);
+  report.getPageLayout().setPrintArea("A1:K52");
 
   //draw Chart
   finalcol = `C1:D${totalRow}`;
   let chart = drawChart(workbook, "Count By Condition", finalcol);
   chart.setPosition(`C${totalRow + 3}`);
   chart.getTitle().setText("Total Assets By Condition");
+  chart.setLeft(0);
+  chart.setWidth(520);
+  chart.setHeight(300);
 }
 
 //ADDONS FUNCTION
