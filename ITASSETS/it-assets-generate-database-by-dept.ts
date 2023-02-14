@@ -47,7 +47,6 @@ function main(workbook: ExcelScript.Workbook, items: Array<items>) {
 	createTable(workbook);
 }
 
-//GENERATE TOTAL ASSET BY TYPE AND DEPARTMENT TEMPORARY
 function createTable(workbook: ExcelScript.Workbook) {
 	let database = workbook.getWorksheet("database");
 	const database_range = database.getUsedRange();
@@ -91,8 +90,8 @@ function createTable(workbook: ExcelScript.Workbook) {
 	}
 	dataArray.shift();
 
-	// const groupedData = [];
-	const groupedData: { Department: string, accounts: { Username: string, PC: number, Laptop: number }[] }[] = [];
+	const groupedData = [{}];
+	// const groupedData: { Department: string, accounts: { Username: string, PC: number, Laptop: number }[] }[] = [];
 	const departments = new Set(dataArray.map(item => item.Department));
 
 	for (const department of departments) {
@@ -106,7 +105,9 @@ function createTable(workbook: ExcelScript.Workbook) {
 			});
 		groupedData.push({ Department: department, accounts });
 	}
+	console.log(groupedData);
 	groupedData.shift()
+
 
 	//insert into HOME
 	workbook.getWorksheet("Home")?.delete();
@@ -120,8 +121,9 @@ function createTable(workbook: ExcelScript.Workbook) {
 	let totalCountPC = 0;
 	let totalCountLaptop = 0;
 	//lopping to
-	console.log("going to loop " + groupedData.length + " times");
+	console.log("going to loop " + groupedData.length + "times");
 	for (i = 0; i < groupedData.length; i++) {
+		console.log("loop : "+i);
 		//selec column 4 each department
 		let deptColLastNum = deptColFirstNum + 2;
 		let deptColFirstAL = convertNumToAlphabet(deptColFirstNum);
