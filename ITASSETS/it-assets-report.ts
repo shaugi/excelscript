@@ -85,18 +85,19 @@ function generate_totalAssets_by_Status(workbook: ExcelScript.Workbook) {
       let status = selectedColumns[i][1];
 
       if (!(JSON.stringify(item) in count)) {
-        count[JSON.stringify(item)] = { Borrowed: 0, Available: 0, Missing: 0, Broken: 0 };
+        count[JSON.stringify(item)] = { Borrowed: 0, Available: 0, Missing: 0, Broken: 0 , Unavailable:0};
       }
       count[JSON.stringify(item)][status]++;
     }
-    let finalArray: { item: string, Borrowed: number, Available: number, Missing: number, Broken: number }[] = []
+    let finalArray: { item: string, Borrowed: number, Available: number, Missing: number, Broken: number, Unavailable:number }[] = []
     for (let item in count) {
       let obj = {
         item: JSON.parse(item),
         Borrowed: count[item]['Borrowed'],
         Available: count[item]['Available'],
         Missing: count[item]['Missing'],
-        Broken: count[item]['Broken']
+        Broken: count[item]['Broken'],
+        Unavailable: count[item]['Unavailable']
       }
       finalArray.push(obj);
     }
@@ -106,18 +107,18 @@ function generate_totalAssets_by_Status(workbook: ExcelScript.Workbook) {
     // add to new data to  worksheet
     workbook.getWorksheet("Status by Type Assets")?.delete();
     const report = workbook.addWorksheet("Status by Type Assets");
-    report.getRange("C1:G1").setValues([['Type Asset', 'Borrowed', 'Available', 'Missing', 'Broken']]);
+    report.getRange("C1:H1").setValues([['Type Asset', 'Borrowed', 'Available', 'Missing', 'Broken','Unavailable']]);
     const reportL = report.getUsedRange();
     const reportV = reportL.getValues();
     let reportTR = reportV.length;
     finalArray.forEach((data) => {
       reportTR += 1;
-      report.getRange(`C${reportTR}:G${reportTR}`).setValues([[data.item, data.Borrowed, data.Available, data.Missing, data.Broken]]);
+      report.getRange(`C${reportTR}:H${reportTR}`).setValues([[data.item, data.Borrowed, data.Available, data.Missing, data.Broken, data.Unavailable]]);
     })
 
 
     //Draw graprh
-    let lastCol = "G";
+    let lastCol = "H";
     let firstA = "C1:"
     let firstB = lastCol.concat(reportTR.toString());
     let finalcol = firstA.concat(firstB);
@@ -125,10 +126,10 @@ function generate_totalAssets_by_Status(workbook: ExcelScript.Workbook) {
     report.getRange("1:1").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
     report.getRange("1:1").getFormat().setIndentLevel(0);
     // Set horizontal alignment to ExcelScript.HorizontalAlignment.center for range B:E on selectedSheet
-    report.getRange("C:G").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
-    report.getRange("C:G").getFormat().setIndentLevel(0);
+    report.getRange("C:H").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+    report.getRange("C:H").getFormat().setIndentLevel(0);
     // Set fill color to B4C6E7 for range A1:E1 on selectedSheet
-    report.getRange("C1:G1").getFormat().getFill().setColor("B4C6E7");
+    report.getRange("C1:H1").getFormat().getFill().setColor("B4C6E7");
     report.getPageLayout().setPrintArea("A1:K52");
 
     let chartAssetsByStatus = drawChart(workbook, "Status by Type Assets", finalcol);

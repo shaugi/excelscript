@@ -1,54 +1,6 @@
 // @ts-nocheck
-interface items {
-	Title: string,
-	Category: {
-		Value: string
-	},
-	BorrowedBy: string,
-	Status: {
-		Value: string
-	},
-	Dept: string
-}
-interface Category {
-	Value: string
-}
-
-function main(workbook: ExcelScript.Workbook, items: Array<items>) {
-
-	let sheet_database = workbook.getWorksheet('Database');
-	if (sheet_database) {
-		sheet_database.delete();
-		sheet_database = workbook.addWorksheet("database")
-	}
-
-	sheet_database.getRange("A1:E1").setValues([['Assets Name', 'Type Assets', 'Department', 'User Name', 'Status']]);
-	let sheet_database_lastCell = 0;
-
-	//insert data from automate to excel
-	items.forEach((data) => {
-		const name = data.Title;
-		const department: string = data.Dept;
-		const status = data.Status.Value;
-		const typeAssetObj = data.Category;
-		const typeAsset = typeAssetObj.Value;
-		const username = data.BorrowedBy;
-
-		if (status === "Borrowed" && (typeAsset === "Laptop" || typeAsset === "PC")) {
-			sheet_database_lastCell = sheet_database_lastCell + 1;
-			sheet_database.getCell(sheet_database_lastCell, 0).setValue(name);
-			sheet_database.getCell(sheet_database_lastCell, 1).setValue(typeAsset);
-			sheet_database.getCell(sheet_database_lastCell, 2).setValue(department);
-			sheet_database.getCell(sheet_database_lastCell, 3).setValue(username);
-			sheet_database.getCell(sheet_database_lastCell, 4).setValue(status);
-		}
-	});
-
-	createTable(workbook);
-}
-
 //GENERATE TOTAL ASSET BY TYPE AND DEPARTMENT TEMPORARY
-function createTable(workbook: ExcelScript.Workbook) {
+function main(workbook: ExcelScript.Workbook) {
 	let database = workbook.getWorksheet("database");
 	const database_range = database.getUsedRange();
 	const database_values = database_range.getValues();
@@ -58,8 +10,8 @@ function createTable(workbook: ExcelScript.Workbook) {
 	});
 	selectedColumns.shift();
 	let data = {};
-	for (let i = 0; i < selectedColumns.length; i++) {
 
+	for (let i = 0; i < selectedColumns.length; i++) {
 		let typeAssets = selectedColumns[i][1];
 		let department = selectedColumns[i][2];
 		let username = selectedColumns[i][3];
@@ -75,8 +27,10 @@ function createTable(workbook: ExcelScript.Workbook) {
 		if (!data[department][username][typeAssets]) {
 			data[department][username][typeAssets] = 0;
 		}
+
 		data[department][username][typeAssets] += 1;
 	}
+
 
 	let dataArray = [{}];
 	for (let department in data) {
@@ -91,8 +45,7 @@ function createTable(workbook: ExcelScript.Workbook) {
 	}
 	dataArray.shift();
 
-	// const groupedData = [];
-	const groupedData: { Department: string, accounts: { Username: string, PC: number, Laptop: number }[] }[] = [];
+	const groupedData = [{}];
 	const departments = new Set(dataArray.map(item => item.Department));
 
 	for (const department of departments) {
@@ -110,36 +63,36 @@ function createTable(workbook: ExcelScript.Workbook) {
 
 	//insert into HOME
 	workbook.getWorksheet("Home")?.delete();
-	let homeSheet = workbook.addWorksheet("Home");
-	homeSheet.getRange("1:1").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
-	homeSheet.getRange("2:2").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+	let HomeSheet = workbook.addWorksheet("Home");
+	HomeSheet.getRange("1:1").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+	HomeSheet.getRange("2:2").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
 	let theMostRow = 0;
-	let deptColFirstNum = 1;
+	let DeptColFirstNum = 1;
 
 	let summary = [{}];
 	let totalCountPC = 0;
 	let totalCountLaptop = 0;
-	//lopping to
-	console.log("going to loop " + groupedData.length + " times");
+	//lopping to insert
 	for (i = 0; i < groupedData.length; i++) {
 		//selec column 4 each department
-		let deptColLastNum = deptColFirstNum + 2;
-		let deptColFirstAL = convertNumToAlphabet(deptColFirstNum);
-		let deptColLastAL = convertNumToAlphabet(deptColLastNum);
+		let DeptColLastNum = DeptColFirstNum + 2;
+		let DeptColFirstAL = convertNumToAlphabet(DeptColFirstNum);
+		let DeptColLastAL = convertNumToAlphabet(DeptColLastNum);
 
 		//insert header
-		homeSheet.getRange(`${deptColFirstAL}1:${deptColLastAL}1`).setValue([[groupedData[i].Department, null, null,]]);
-		homeSheet.getRange(`${deptColFirstAL}1:${deptColLastAL}1`).merge(false);
-		homeSheet.getRange(`${deptColFirstAL}2:${deptColLastAL}2`).setValue([["User Name", "Laptop", "PC"]]);
+		HomeSheet.getRange(`${DeptColFirstAL}1:${DeptColLastAL}1`).setValue([[groupedData[i].Department, null, null,]]);
+		HomeSheet.getRange(`${DeptColFirstAL}1:${DeptColLastAL}1`).merge(false);
+		HomeSheet.getRange(`${DeptColFirstAL}2:${DeptColLastAL}2`).setValue([["User Name", "Laptop", "PC"]]);
 
 		//config table
-		homeSheet.getRange(`${deptColFirstNum}:${deptColFirstNum}`).getFormat().autofitColumns();
-		homeSheet.getRange("1:2").getFormat().getFill().setColor("9BC2E6");
+		HomeSheet.getRange(`${DeptColFirstNum}:${DeptColFirstNum}`).getFormat().autofitColumns();
+		HomeSheet.getRange("1:2").getFormat().getFill().setColor("9BC2E6");
+
 		//insert values
+
 		let indexColValue = 3;
 		for (j = 0; j < groupedData[i].accounts.length; j++) {
-			// console.log("insert value : " + groupedData[i].accounts[j].Username);
-			homeSheet.getRange(`${deptColFirstAL}${indexColValue}:${deptColLastAL}${indexColValue}`).setValue([[groupedData[i].accounts[j].Username, groupedData[i].accounts[j].PC, groupedData[i].accounts[j].Laptop]]);
+			HomeSheet.getRange(`${DeptColFirstAL}${indexColValue}:${DeptColLastAL}${indexColValue}`).setValue([[groupedData[i].accounts[j].Username, groupedData[i].accounts[j].PC, groupedData[i].accounts[j].Laptop]]);
 			indexColValue += 1;
 			totalCountPC = totalCountPC + groupedData[i].accounts[j].PC;
 			totalCountLaptop = totalCountLaptop + groupedData[i].accounts[j].Laptop;
@@ -152,7 +105,7 @@ function createTable(workbook: ExcelScript.Workbook) {
 			totalCountLaptop = 0;
 		}
 
-		deptColFirstNum = deptColLastNum + 1
+		DeptColFirstNum = DeptColLastNum + 1
 		if (theMostRow < indexColValue) {
 			theMostRow = indexColValue + 1;
 		} else {
