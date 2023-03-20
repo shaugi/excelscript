@@ -16,7 +16,7 @@ interface Category {
 
 function main(workbook: ExcelScript.Workbook, items: Array<items>) {
 
-	let sheet_database = workbook.getWorksheet('Database');
+	let sheet_database = workbook.getWorksheet('database');
 	if (sheet_database) {
 		sheet_database.delete();
 		sheet_database = workbook.addWorksheet("database")
@@ -92,7 +92,14 @@ function createTable(workbook: ExcelScript.Workbook) {
 
 	const groupedData = [{}];
 	// const groupedData: { Department: string, accounts: { Username: string, PC: number, Laptop: number }[] }[] = [];
-	const departments = new Set(dataArray.map(item => item.Department));
+	// const departments = new Set(dataArray.map(item => item.Department));
+	const departments: string[] = [];
+	for (const item of dataArray) {
+		if (item.Department && !departments.includes(item.Department)) {
+			departments.push(item.Department);
+		}
+	}
+
 
 	for (const department of departments) {
 		const accounts = dataArray.filter(item => item.Department === department)
@@ -105,7 +112,7 @@ function createTable(workbook: ExcelScript.Workbook) {
 			});
 		groupedData.push({ Department: department, accounts });
 	}
-	console.log(groupedData);
+
 	groupedData.shift()
 
 
@@ -121,9 +128,7 @@ function createTable(workbook: ExcelScript.Workbook) {
 	let totalCountPC = 0;
 	let totalCountLaptop = 0;
 	//lopping to
-	console.log("going to loop " + groupedData.length + "times");
 	for (i = 0; i < groupedData.length; i++) {
-		console.log("loop : "+i);
 		//selec column 4 each department
 		let deptColLastNum = deptColFirstNum + 2;
 		let deptColFirstAL = convertNumToAlphabet(deptColFirstNum);
@@ -132,7 +137,7 @@ function createTable(workbook: ExcelScript.Workbook) {
 		//insert header
 		homeSheet.getRange(`${deptColFirstAL}1:${deptColLastAL}1`).setValue([[groupedData[i].Department, null, null,]]);
 		homeSheet.getRange(`${deptColFirstAL}1:${deptColLastAL}1`).merge(false);
-		homeSheet.getRange(`${deptColFirstAL}2:${deptColLastAL}2`).setValue([["User Name", "Laptop", "PC"]]);
+		homeSheet.getRange(`${deptColFirstAL}2:${deptColLastAL}2`).setValue([["User Name", "PC", "Laptop"]]);
 
 		//config table
 		homeSheet.getRange(`${deptColFirstNum}:${deptColFirstNum}`).getFormat().autofitColumns();
@@ -140,7 +145,7 @@ function createTable(workbook: ExcelScript.Workbook) {
 		//insert values
 		let indexColValue = 3;
 		for (j = 0; j < groupedData[i].accounts.length; j++) {
-			// console.log("insert value : " + groupedData[i].accounts[j].Username);
+
 			homeSheet.getRange(`${deptColFirstAL}${indexColValue}:${deptColLastAL}${indexColValue}`).setValue([[groupedData[i].accounts[j].Username, groupedData[i].accounts[j].PC, groupedData[i].accounts[j].Laptop]]);
 			indexColValue += 1;
 			totalCountPC = totalCountPC + groupedData[i].accounts[j].PC;
@@ -184,7 +189,7 @@ function generateSummary(workbook: ExcelScript.Workbook, data = [{}]) {
 		first += 1
 	}
 	if (first > data.length) {
-		SummarySheet.getRange(`A${first + 1}:C${first + 1}`).setValue([["Total", totalLaptop, totalPC]]);
+		SummarySheet.getRange(`A${first + 1}:C${first + 1}`).setValue([["Total", totalPC, totalLaptop]]);
 	}
 
 	SummarySheet.getRange("A:A").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
