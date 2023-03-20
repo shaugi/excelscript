@@ -71,7 +71,7 @@ function main(workbook: ExcelScript.Workbook, items: Array<items>) {
   generate_totalByDepartmentAndTypeAssetsTmp(workbook);
   generate_countByLocation(workbook)
   generate_countByCondition(workbook);
-
+  generate_statusByLocation(workbook)
   sheet_database.delete();
 }
 
@@ -305,6 +305,9 @@ function generate_totalByDepartmentAndTypeAssets(workbook: ExcelScript.Workbook)
   chart.setLeft(10);
   chart.setWidth(sheetWidth - 20);
 
+  // chart.setLeft(0);
+  // chart.setWidth(520);
+  // chart.setHeight(300);
 }
 
 //GENERATE TOTAL ASSETS BY LOCATION
@@ -424,7 +427,7 @@ function generate_countByCondition(workbook: ExcelScript.Workbook) {
   report.getRange("A1:J2").setValue("Total Asset by Condition");
   report.getRange("A1:J2").getFormat().getFont().setSize(14);
   report.getRange("A1:J2").getFormat().getFont().setBold(true);
-  report.getRange("C3:D3").setValues([['Location', 'Total']]);
+  report.getRange("C3:D3").setValues([['Condition', 'Total']]);
   const reportUsedRange = report.getUsedRange();
   const reportValues = reportUsedRange.getValues();
   let reportLength = reportValues.length;
@@ -492,4 +495,98 @@ function convertNumToAlphabet(num: number) {
     num = (num - remainder - 1) / 26;
   }
   return str;
+}
+
+function generate_statusByLocation(workbook: ExcelScript.Workbook) {
+  let database = workbook.getWorksheet("database");
+  const database_range = database.getUsedRange();
+  const database_values = database_range.getValues();
+  const database_lastCell = database_values.length;
+  const selectedColumns = database_values.map((row) => {
+    return [row[7], row[8]];
+  });
+
+  // count by status
+  let count = {};
+  for (let i = 0; i < selectedColumns.length; i++) {
+    let item = selectedColumns[i][0];
+    let status = selectedColumns[i][1];
+
+    if (!(JSON.stringify(item) in count)) {
+      count[JSON.stringify(item)] = { Borrowed: 0, Available: 0, Missing: 0, Broken: 0, Unavailable: 0 };
+    }
+    count[JSON.stringify(item)][status]++;
+  }
+  let finalArray: { item: string, Borrowed: number, Available: number, Missing: number, Broken: number, Unavailable: number }[] = []
+  for (let item in count) {
+    let obj = {
+      item: JSON.parse(item),
+      Borrowed: count[item]['Borrowed'],
+      Available: count[item]['Available'],
+      Missing: count[item]['Missing'],
+      Broken: count[item]['Broken'],
+      Unavailable: count[item]['Unavailable']
+    }
+    finalArray.push(obj);
+  }
+  finalArray.shift();
+
+
+  // add to new data to  worksheet
+  workbook.getWorksheet("Status by Location")?.delete();
+  const report = workbook.addWorksheet("Status by Location");
+  report.getRange("A1:J2").merge(false);
+  report.getRange("A1:J2").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+  report.getRange("A1:J2").getFormat().setVerticalAlignment(ExcelScript.VerticalAlignment.center);
+  report.getRange("A1:J2").getFormat().setIndentLevel(0);
+  report.getRange("A1:J2").setValue("Status by Location");
+  report.getRange("A1:J2").getFormat().getFont().setSize(14);
+  report.getRange("A1:J2").getFormat().getFont().setBold(true);
+
+  report.getRange("C3:H3").setValues([['Location', 'Borrowed', 'Available', 'Missing', 'Broken', 'Unavailable']]);
+  report.getRange("C:C").getFormat().autofitColumns();
+  report.getRange("D:D").getFormat().autofitColumns();
+  report.getRange("E:E").getFormat().autofitColumns();
+  report.getRange("F:F").getFormat().autofitColumns();
+  report.getRange("G:G").getFormat().autofitColumns();
+  report.getRange("H:H").getFormat().autofitColumns();
+
+  const reportL = report.getUsedRange();
+  const reportV = reportL.getValues();
+  let reportTR = reportV.length;
+  finalArray.forEach((data) => {
+    reportTR += 1;
+    report.getRange(`C${reportTR}:H${reportTR}`).setValues([[data.item, data.Borrowed, data.Available, data.Missing, data.Broken, data.Unavailable]]);
+  })
+
+
+  //Draw graprh
+  let lastCol = "H";
+  let firstA = "C3:"
+  let firstB = lastCol.concat(reportTR.toString());
+  let finalcol = firstA.concat(firstB);
+  // Set horizontal alignment to ExcelScript.HorizontalAlignment.center for range 1:1 on selectedSheet
+  report.getRange("1:1").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+  report.getRange("1:1").getFormat().setIndentLevel(0);
+  // Set horizontal alignment to ExcelScript.HorizontalAlignment.center for range B:E on selectedSheet
+  report.getRange("C:H").getFormat().setHorizontalAlignment(ExcelScript.HorizontalAlignment.center);
+  report.getRange("C:H").getFormat().setIndentLevel(0);
+  // Set fill color to B4C6E7 for range A1:E1 on selectedSheet
+  report.getRange("C3:H3").getFormat().getFill().setColor("B4C6E7");
+  report.getRange("C:C").getFormat().autofitColumns();
+  // report.getPageLayout().setPrintArea("A1:K52");
+
+  let chartAssetsByStatus = drawChart(workbook, "Status by Location", finalcol);
+  chartAssetsByStatus.setPosition(`B${reportTR + 3}`);
+  chartAssetsByStatus.getTitle().setText("Status by Location");
+
+  let sheetWidth = 0;
+  for (let i = 1; i <= 10; i++) {
+    let columnWidth = report.getCell(1, i).getFormat().getColumnWidth();
+    sheetWidth = sheetWidth + columnWidth;
+  }
+  // Resize and move chart chart_1
+  chartAssetsByStatus.setHeight(300);
+  chartAssetsByStatus.setLeft(10);
+  chartAssetsByStatus.setWidth(sheetWidth - 20);
 }
